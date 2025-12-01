@@ -84,6 +84,18 @@ export const momoIpnHandler = async (req: Request, res: Response) => {
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
     }
+    if (Number(amount) !== Number(order.total)) {
+      console.error(
+        `MoMo IPN amount mismatch: IPN=${amount}, order.total=${order.total}, orderId=${order.id}`
+      );
+      return res.status(400).json({ message: "Amount mismatch" });
+    }
+    if (
+      order.status === OrderStatus.CANCELLED &&
+      order.cancelReason === "AUTO_CANCEL_MOMO_TIMEOUT"
+    ) {
+      return res.status(400).json({ message: "Order expired" });
+    }
 
     // 4. Nếu đã paid rồi thì không update nữa, chỉ trả OK cho MoMo
     if (order.paymentStatus === PaymentStatus.PAID) {

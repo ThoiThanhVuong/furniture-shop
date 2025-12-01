@@ -31,6 +31,8 @@ export const useAuthStore = create<AuthState>()(
         if (typeof window !== "undefined") {
           sessionStorage.removeItem("auth-storage");
           sessionStorage.removeItem("cart-storage");
+          sessionStorage.removeItem("auth-storage-type");
+          localStorage.removeItem("auth-storage");
         }
       },
     }),
@@ -38,7 +40,28 @@ export const useAuthStore = create<AuthState>()(
       name: "auth-storage",
       storage:
         typeof window !== "undefined"
-          ? createJSONStorage(() => sessionStorage)
+          ? createJSONStorage(() => {
+              // 1. Ưu tiên theo cấu hình hiện tại của phiên
+              const type = window.sessionStorage.getItem("auth-storage-type");
+
+              if (type === "session") {
+                return window.sessionStorage;
+              }
+              if (type === "local") {
+                return window.localStorage;
+              }
+
+              // 2. Nếu chưa có cấu hình -> đoán theo data có sẵn
+              if (window.localStorage.getItem("auth-storage")) {
+                return window.localStorage;
+              }
+              if (window.sessionStorage.getItem("auth-storage")) {
+                return window.sessionStorage;
+              }
+
+              // 3. Mặc định nếu chưa có gì
+              return window.localStorage;
+            })
           : undefined,
     }
   )

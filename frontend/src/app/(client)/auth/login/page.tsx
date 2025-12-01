@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 const loginSchema = z.object({
   email: z.string().email('Email không hợp lệ'),
   password: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),
+  rememberMe: z.boolean().optional(),
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
@@ -44,6 +45,18 @@ const onSubmit = async (data: LoginForm) => {
   try {
     const response = await authAPI.login(data);
     const { user, token } = response.data.data;
+    // Chọn loại storage trước khi setAuth
+    if (typeof window !== "undefined") {
+      if (data.rememberMe) {
+        // Lưu lâu dài
+        window.sessionStorage.setItem("auth-storage-type", "local");
+      } else {
+        // Chỉ cho phiên hiện tại
+        window.sessionStorage.setItem("auth-storage-type", "session");
+        // Đảm bảo không còn auth cũ trong localStorage
+        window.localStorage.removeItem("auth-storage");
+      }
+    }
     setAuth(user, token);
 
     try {
@@ -163,7 +176,7 @@ const onSubmit = async (data: LoginForm) => {
             {/* Remember & Forgot */}
             <div className="flex items-center justify-between">
               <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" className="w-4 h-4 rounded" />
+                <input type="checkbox" {...register("rememberMe")} className="w-4 h-4 rounded" />
                 <span className="text-sm">Ghi nhớ đăng nhập</span>
               </label>
               <Link

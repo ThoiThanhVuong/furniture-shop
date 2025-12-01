@@ -348,7 +348,11 @@ export class OrderService {
     return order;
   }
 
-  async updateOrderStatus(orderId: string, status: OrderStatus) {
+  async updateOrderStatus(
+    orderId: string,
+    status: OrderStatus,
+    cancelReason?: string
+  ) {
     const order = await prisma.order.findUnique({
       where: { id: orderId },
     });
@@ -364,7 +368,9 @@ export class OrderService {
       updateData.paymentStatus = PaymentStatus.PAID;
     } else if (status === OrderStatus.CANCELLED) {
       updateData.cancelledAt = new Date();
-
+      if (cancelReason) {
+        updateData.cancelReason = cancelReason;
+      }
       const orderItems = await prisma.orderItem.findMany({
         where: { orderId },
       });
@@ -406,8 +412,13 @@ export class OrderService {
       throw new BadRequestError("Only pending orders can be cancelled");
     }
 
-    return this.updateOrderStatus(orderId, OrderStatus.CANCELLED);
+    return this.updateOrderStatus(
+      orderId,
+      OrderStatus.CANCELLED,
+      reason || "User cancelled order"
+    );
   }
+
   // Xác nhận thanh toán cho đơn hàng
   async confirmPayment(orderId: string, userId?: string) {
     const order = await prisma.order.findUnique({ where: { id: orderId } });
@@ -490,6 +501,7 @@ export class OrderService {
 
     return { message: "Đã thêm sản phẩm vào giỏ hàng từ đơn cũ" };
   }
+
   // Hủy các đơn MoMo quá hạn chưa thanh toán
   async cancelExpiredUnpaidMomoOrders(timeoutMinutes = 30) {
     const now = Date.now();
@@ -508,7 +520,11 @@ export class OrderService {
 
     for (const o of orders) {
       // dùng logic có sẵn (restore stock khi CANCELLED)
-      await this.updateOrderStatus(o.id, OrderStatus.CANCELLED);
+      await this.updateOrderStatus(
+        o.id,
+        OrderStatus.CANCELLED,
+        "AUTO_CANCEL_MOMO_TIMEOUT"
+      );
     }
 
     return {
@@ -516,6 +532,7 @@ export class OrderService {
       timeoutMinutes,
     };
   }
+
   // Tạo thanh toán MoMo cho một order đã tồn tại
   async createMomoPaymentForOrder(orderId: string, userId: string) {
     // Lấy order gốc (không include items cũng được, MoMo chỉ cần tổng tiền)

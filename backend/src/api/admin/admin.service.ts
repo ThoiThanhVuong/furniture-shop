@@ -1,7 +1,7 @@
 import { OrderStatus } from "@prisma/client";
 import prisma from "../../utils/db";
 import dayjs from "dayjs";
-
+import { sendOrderStatusUpdateEmail } from "../../utils/email";
 export class AdminService {
   // Dashboard Statistics
   async getDashboardStats() {
@@ -286,14 +286,24 @@ export class AdminService {
   }
 
   // Update order status
+  // Update order status
   async updateOrderStatus(orderId: string, status: OrderStatus) {
     const order = await prisma.order.findUnique({
       where: { id: orderId },
+      include: {
+        user: {
+          select: {
+            email: true,
+            name: true,
+          },
+        },
+      },
     });
 
     if (!order) {
       throw new Error("Order not found");
     }
+
     //Không cho cập nhật nếu đơn đã hoàn tất hoặc đã hủy
     if (
       order.status === OrderStatus.COMPLETED ||
@@ -325,10 +335,36 @@ export class AdminService {
       }
     }
 
-    return prisma.order.update({
+    const updatedOrder = await prisma.order.update({
       where: { id: orderId },
       data: updateData,
     });
+
+    // Gửi email thông báo trạng thái nếu đơn có user gắn với
+    if (order.user?.email) {
+      // Map enum -> text hiển thị đẹp cho user (tuỳ enum bạn đang dùng)
+      const statusText =
+        status === OrderStatus.PENDING
+          ? "Đang chờ xử lý"
+          : status === OrderStatus.PROCESSING
+            ? "Đang xử lý"
+            : status === OrderStatus.SHIPPING
+              ? "Đang giao hàng"
+              : status === OrderStatus.COMPLETED
+                ? "Hoàn tất"
+                : status === OrderStatus.CANCELLED
+                  ? "Đã hủy"
+                  : String(status);
+
+      await sendOrderStatusUpdateEmail(
+        order.user.email,
+        order.user.name || null,
+        updatedOrder.id,
+        statusText
+      );
+    }
+
+    return updatedOrder;
   }
 
   // User management

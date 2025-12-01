@@ -93,3 +93,24 @@ export const sendContactReplyEmail = async (
 
   await sendEmail(to, `Phản hồi từ FurniShop - ${subject}`, html);
 };
+
+export const sendOrderStatusUpdateEmail = async (
+  to: string,
+  name: string | null,
+  orderNumber: string,
+  statusText: string
+): Promise<void> => {
+  const html = `
+    <h2>Cập nhật trạng thái đơn hàng - ${orderNumber}</h2>
+    <p>Xin chào ${name || "bạn"},</p>
+    <p>Trạng thái đơn hàng <strong>${orderNumber}</strong> của bạn vừa được cập nhật thành: <strong>${statusText}</strong>.</p>
+    <p>Bạn có thể xem chi tiết đơn hàng tại:</p>
+    <p><a href="${config.frontend.url}/account/orders/${orderNumber}">${config.frontend.url}/account/orders/${orderNumber}</a></p>
+    <p>Nếu bạn không thực hiện đơn hàng này, vui lòng liên hệ lại với chúng tôi.</p>
+    <br/>
+    <p>Trân trọng,</p>
+    <p>Đội ngũ hỗ trợ FurniShop</p>
+  `;
+
+  await sendEmail(to, `Cập nhật trạng thái đơn hàng ${orderNumber}`, html);
+};

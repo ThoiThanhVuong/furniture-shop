@@ -67,8 +67,8 @@ export const reorderToCart = asyncHandler(
 
 export const autoCancelExpiredMomo = asyncHandler(
   async (req: Request, res: Response) => {
-    const timeoutMinutes =
-      (req.body.timeoutMinutes as number | undefined) ?? 30;
+    const rawTimeout = req.body.timeoutMinutes;
+    const timeoutMinutes = rawTimeout !== undefined ? Number(rawTimeout) : 30;
 
     const result =
       await orderService.cancelExpiredUnpaidMomoOrders(timeoutMinutes);

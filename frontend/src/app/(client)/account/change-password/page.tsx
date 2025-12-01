@@ -27,8 +27,8 @@ export default function ChangePasswordPage() {
       await authAPI.changePassword(formData);
       toast.success('Đổi mật khẩu thành công. Vui lòng đăng nhập lại.');
 
-      logout();
-      router.push('/auth/login');
+      
+      router.push('/account');
     } catch (error: any) {
       toast.error(error.message || 'Đổi mật khẩu thất bại');
     } finally {

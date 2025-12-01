@@ -395,6 +395,12 @@ export default function ProductsPage() {
                             className="object-cover group-hover:scale-110 transition-transform duration-300"
                           />
                         )}
+                         {/* Badge HẾT HÀNG */}
+                        {product.stock === 0 && (
+                          <div className="absolute top-3 left-3 bg-black/70 text-white px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide">
+                            Hết hàng
+                          </div>
+                        )}
                         {product.salePrice && (
                           <div className="absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
                             -
@@ -451,9 +457,14 @@ export default function ProductsPage() {
 
                       <button
                         onClick={() => handleAddToCart(product)}
-                        className="w-full py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
+                        disabled={product.stock === 0}
+                      className={`w-full py-2 rounded-lg transition font-semibold ${
+                                product.stock === 0
+                                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                  : 'bg-primary-600 text-white hover:bg-primary-700'
+                              }`}
                       >
-                        Thêm vào giỏ
+                         {product.stock === 0 ? 'Hết hàng' : 'Thêm vào giỏ'}
                       </button>
                     </div>
                   </div>

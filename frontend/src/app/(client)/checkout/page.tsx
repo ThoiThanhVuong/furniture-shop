@@ -74,6 +74,7 @@ export default function CheckoutPage() {
     shopAddress &&
     normalize(watchAddress) === normalize(shopAddress);
 
+  // 1. Kiểm tra login + cart rỗng
   useEffect(() => {
     if (!user) {
       router.push("/auth/login");
@@ -84,14 +85,20 @@ export default function CheckoutPage() {
       router.push("/cart");
       return;
     }
+  }, [user, items, router]);
 
+  // 2. Gán giá trị mặc định từ user cho form
+  useEffect(() => {
     if (user) {
       setValue("fullName", user.name);
       setValue("email", user.email);
       setValue("phone", user.phone || "");
       setValue("address", user.address || "");
     }
+  }, [user, setValue]); // KHÔNG có voucherCode
 
+  // 3. Lấy info shop + danh sách voucher
+  useEffect(() => {
     const fetchShopInfo = async () => {
       try {
         const res = await shopAPI.getInfo();
@@ -106,25 +113,18 @@ export default function CheckoutPage() {
     const fetchVouchers = async () => {
       try {
         const res = await vouchersAPI.getAvailable();
-        const list = res.data.data || [];
-        const now = new Date();
+      const list = res.data.data || [];
+      const now = new Date();
 
-        // lọc lại client-side cho chắc
-        const validList = list.filter((v) => {
-          const start = new Date(v.startDate);
-          const end = new Date(v.endDate);
-          const inDateRange = start <= now && end >= now;
-          const underLimit =
-            !v.usageLimit || v.usedCount < v.usageLimit;
-          return v.isActive && inDateRange && underLimit;
-        });
+      const validList = list.filter((v) => {
+        const start = new Date(v.startDate);
+        const end = new Date(v.endDate);
+        const inDateRange = start <= now && end >= now;
+        const underLimit = !v.usageLimit || v.usedCount < v.usageLimit;
+        return v.isActive && inDateRange && underLimit;
+      });
 
         setAvailableVouchers(validList);
-
-        // Nếu từ Cart đã có voucherCode thì chọn sẵn trong dropdown
-        if (voucherCode) {
-          setSelectedVoucherCode(voucherCode);
-        }
       } catch (err) {
         console.error("Không lấy được danh sách voucher", err);
       }
@@ -132,7 +132,15 @@ export default function CheckoutPage() {
 
     fetchShopInfo();
     fetchVouchers();
-  }, [items, user, router, setValue, voucherCode]);
+  }, []);
+  //  Đồng bộ dropdown với voucherCode trong store
+  useEffect(() => {
+    if (voucherCode) {
+      setSelectedVoucherCode(voucherCode);
+    } else {
+      setSelectedVoucherCode("");
+    }
+  }, [voucherCode]);
 
   // -------------------------
   // TÍNH TIỀN
