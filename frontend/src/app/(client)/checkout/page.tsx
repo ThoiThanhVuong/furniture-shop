@@ -219,10 +219,14 @@ export default function CheckoutPage() {
       toast.error("Vui lòng chọn ít nhất 1 sản phẩm");
       return;
     }
+<<<<<<< HEAD
     if (total === 0 && paymentMethod === "MOMO") {
       toast.error("Đơn hàng 0đ chỉ hỗ trợ thanh toán khi nhận hàng (COD)");
       return;
     }
+=======
+
+>>>>>>> 0567473ab4e1abfb7bf17f51c329e5310262397a
     setLoading(true);
     try {
       const payload = {
@@ -248,7 +252,10 @@ export default function CheckoutPage() {
 
       toast.success("Đặt hàng thành công!");
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 0567473ab4e1abfb7bf17f51c329e5310262397a
       if (paymentMethod === "COD") {
         router.push(`/account/orders/${createdOrder.id}`);
       } else {
@@ -420,12 +427,17 @@ export default function CheckoutPage() {
                   </label>
 
                   {/* MOMO */}
+<<<<<<< HEAD
                   <label className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer hover:border-primary-500 ${
                                     total === 0 ? "opacity-50 cursor-not-allowed" : ""}`}>
+=======
+                  <label className="flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer hover:border-primary-500">
+>>>>>>> 0567473ab4e1abfb7bf17f51c329e5310262397a
                     <input
                       type="radio"
                       name="payment"
                       value="MOMO"
+<<<<<<< HEAD
                       disabled={total === 0}
                       checked={paymentMethod === "MOMO"}
                       onChange={(e) =>{
@@ -435,6 +447,11 @@ export default function CheckoutPage() {
                           }
                           setPaymentMethod(e.target.value as PaymentMethod)
                         }   
+=======
+                      checked={paymentMethod === "MOMO"}
+                      onChange={(e) =>
+                        setPaymentMethod(e.target.value as PaymentMethod)
+>>>>>>> 0567473ab4e1abfb7bf17f51c329e5310262397a
                       }
                       className="w-5 h-5"
                     />
